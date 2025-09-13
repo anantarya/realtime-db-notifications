@@ -301,38 +301,3 @@ Response:
 }
 ```
 
-## 🔒 Security Considerations
-
-### Production Deployment
-
-1. **Environment Variables**: Never commit `.env` files
-2. **HTTPS/WSS**: Use secure connections in production
-3. **Authentication**: Add JWT or session-based auth
-4. **Rate Limiting**: Implement API rate limiting
-5. **Input Validation**: Sanitize all user inputs
-6. **CORS**: Configure appropriate CORS policies
-
-### Database Security
-
-1. **Connection Encryption**: Use SSL for database connections
-2. **User Permissions**: Create dedicated database user with minimal privileges
-3. **Network Security**: Restrict database access to application servers
-
-## 📚 Further Reading
-
-- [PostgreSQL LISTEN/NOTIFY Documentation](https://www.postgresql.org/docs/current/sql-notify.html)
-- [WebSocket API Documentation](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
-- [Node.js WebSocket Library](https://github.com/websockets/ws)
-- [Express.js Documentation](https://expressjs.com/)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.

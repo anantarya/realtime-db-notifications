@@ -2,6 +2,8 @@
 
 A Node.js application that demonstrates real-time database change notifications using PostgreSQL triggers, WebSockets, and a modern web interface.
 
+Live Link - https://realtime-db-notifications.onrender.com/
+
 ## 🚀 Features
 
 - **Real-time Updates**: Clients automatically receive notifications when database changes occur

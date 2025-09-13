@@ -228,17 +228,18 @@ app.get('/health', (req, res) => {
 
 // Start servers
 console.log('Starting server...');
-console.log('Environment:', process.env.RAILWAY_ENVIRONMENT ? 'Railway' : 'Local');
+const isProduction = process.env.RAILWAY_ENVIRONMENT || process.env.RENDER;
+console.log('Environment:', isProduction ? (process.env.RAILWAY_ENVIRONMENT ? 'Railway' : 'Render') : 'Local');
 console.log('Port:', PORT);
 
-if (process.env.RAILWAY_ENVIRONMENT) {
-  // Railway: Start combined HTTP/WebSocket server
+if (isProduction) {
+  // Production (Railway/Render): Start combined HTTP/WebSocket server
   server = require('http').createServer(app);
   wss = new WebSocket.Server({ server });
   setupWebSocketHandlers(wss);
   
   server.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT} (Railway)`);
+    console.log(`✅ Server running on port ${PORT} (${process.env.RAILWAY_ENVIRONMENT ? 'Railway' : 'Render'})`);
     console.log(`✅ Health check available at: http://localhost:${PORT}/health`);
   });
   

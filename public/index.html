@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Order Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .connection-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .connected {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4caf50;
+        }
+
+        .disconnected {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .orders-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .orders-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-shipped {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .notifications {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .notification {
+            background: white;
+            border-left: 4px solid #4facfe;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .notification.insert {
+            border-left-color: #4caf50;
+        }
+
+        .notification.update {
+            border-left-color: #ff9800;
+        }
+
+        .notification.delete {
+            border-left-color: #f44336;
+        }
+
+        .notification-time {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Real-time Order Management</h1>
+            <p>Watch orders update in real-time across all connected clients!</p>
+            <div id="connectionStatus" class="connection-status disconnected">
+                Disconnected
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <h2>📝 Create New Order</h2>
+                <form id="orderForm">
+                    <div class="form-group">
+                        <label for="customerName">Customer Name:</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productName">Product Name:</label>
+                        <input type="text" id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status:</label>
+                        <select id="status">
+                            <option value="pending">Pending</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Create Order</button>
+                </form>
+
+                <h2 style="margin-top: 30px;">✏️ Update Order</h2>
+                <form id="updateForm">
+                    <div class="form-group">
+                        <label for="updateId">Order ID:</label>
+                        <input type="number" id="updateId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateCustomerName">Customer Name:</label>
+                        <input type="text" id="updateCustomerName">
+                    </div>
+                    <div class="form-group">
+                        <label for="updateProductName">Product Name:</label>
+                        <input type="text" id="updateProductName">
+                    </div>
+                    <div class="form-group">
+                        <label for="updateStatus">Status:</label>
+                        <select id="updateStatus">
+                            <option value="">Select Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Update Order</button>
+                    <button type="button" id="deleteBtn" class="btn btn-danger">Delete Order</button>
+                </form>
+            </div>
+
+            <div class="section">
+                <h2>📋 Current Orders</h2>
+                <button id="refreshBtn" class="btn">Refresh Orders</button>
+                <table class="orders-table" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Status</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="notifications">
+            <h2>🔔 Real-time Notifications</h2>
+            <div id="notificationsContainer">
+                <p style="color: #666; font-style: italic;">No notifications yet. Create, update, or delete an order to see real-time updates!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        const WS_URL = 'ws://localhost:8080';
+        
+        let ws = null;
+        let orders = [];
+
+        // WebSocket connection
+        function connectWebSocket() {
+            ws = new WebSocket(WS_URL);
+            
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                updateConnectionStatus(true);
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                console.log('Received:', data);
+                
+                if (data.type === 'order_change') {
+                    handleOrderChange(data.data);
+                    addNotification(data);
+                }
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket disconnected');
+                updateConnectionStatus(false);
+                // Reconnect after 3 seconds
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus(false);
+            };
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.textContent = 'Connected';
+                statusEl.className = 'connection-status connected';
+            } else {
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+
+        function handleOrderChange(changeData) {
+            const { operation, id, customer_name, product_name, status, updated_at } = changeData;
+            
+            switch (operation) {
+                case 'INSERT':
+                    orders.unshift({ id, customer_name, product_name, status, updated_at });
+                    break;
+                case 'UPDATE':
+                    const updateIndex = orders.findIndex(order => order.id === id);
+                    if (updateIndex !== -1) {
+                        orders[updateIndex] = { id, customer_name, product_name, status, updated_at };
+                    }
+                    break;
+                case 'DELETE':
+                    orders = orders.filter(order => order.id !== id);
+                    break;
+            }
+            
+            renderOrders();
+        }
+
+        function addNotification(data) {
+            const container = document.getElementById('notificationsContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${data.data.operation.toLowerCase()}`;
+            
+            const operation = data.data.operation;
+            const order = data.data;
+            
+            let message = '';
+            switch (operation) {
+                case 'INSERT':
+                    message = `✅ New order created: ${order.customer_name} - ${order.product_name} (${order.status})`;
+                    break;
+                case 'UPDATE':
+                    message = `🔄 Order updated: ${order.customer_name} - ${order.product_name} (${order.status})`;
+                    break;
+                case 'DELETE':
+                    message = `❌ Order deleted: ${order.customer_name} - ${order.product_name}`;
+                    break;
+            }
+            
+            notification.innerHTML = `
+                <div>${message}</div>
+                <div class="notification-time">${new Date(data.timestamp).toLocaleString()}</div>
+            `;
+            
+            // Remove the placeholder message if it exists
+            const placeholder = container.querySelector('p');
+            if (placeholder) {
+                placeholder.remove();
+            }
+            
+            container.insertBefore(notification, container.firstChild);
+            
+            // Keep only the last 10 notifications
+            while (container.children.length > 10) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // API functions
+        async function fetchOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/orders`);
+                orders = await response.json();
+                renderOrders();
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                alert('Error fetching orders');
+            }
+        }
+
+        async function createOrder(orderData) {
+            try {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData),
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
+                
+                const newOrder = await response.json();
+                document.getElementById('orderForm').reset();
+                return newOrder;
+            } catch (error) {
+                console.error('Error creating order:', error);
+                alert('Error creating order: ' + error.message);
+            }
+        }
+
+        async function updateOrder(id, updateData) {
+            try {
+                const response = await fetch(`${API_BASE}/orders/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData),
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error updating order:', error);
+                alert('Error updating order: ' + error.message);
+            }
+        }
+
+        async function deleteOrder(id) {
+            try {
+                const response = await fetch(`${API_BASE}/orders/${id}`, {
+                    method: 'DELETE',
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                alert('Error deleting order: ' + error.message);
+            }
+        }
+
+        function renderOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+            
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.customer_name}</td>
+                    <td>${order.product_name}</td>
+                    <td><span class="status status-${order.status}">${order.status}</span></td>
+                    <td>${new Date(order.updated_at).toLocaleString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Event listeners
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const orderData = {
+                customer_name: document.getElementById('customerName').value,
+                product_name: document.getElementById('productName').value,
+                status: document.getElementById('status').value,
+            };
+            
+            await createOrder(orderData);
+        });
+
+        document.getElementById('updateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('updateId').value;
+            const updateData = {};
+            
+            const customerName = document.getElementById('updateCustomerName').value;
+            const productName = document.getElementById('updateProductName').value;
+            const status = document.getElementById('updateStatus').value;
+            
+            if (customerName) updateData.customer_name = customerName;
+            if (productName) updateData.product_name = productName;
+            if (status) updateData.status = status;
+            
+            if (Object.keys(updateData).length === 0) {
+                alert('Please fill in at least one field to update');
+                return;
+            }
+            
+            await updateOrder(id, updateData);
+            document.getElementById('updateForm').reset();
+        });
+
+        document.getElementById('deleteBtn').addEventListener('click', async () => {
+            const id = document.getElementById('updateId').value;
+            if (!id) {
+                alert('Please enter an order ID');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this order?')) {
+                await deleteOrder(id);
+                document.getElementById('updateForm').reset();
+            }
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', fetchOrders);
+
+        // Initialize
+        connectWebSocket();
+        fetchOrders();
+    </script>
+</body>
+</html>

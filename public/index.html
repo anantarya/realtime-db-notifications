@@ -299,8 +299,12 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3000/api';
-        const WS_URL = 'ws://localhost:8080';
+        // Auto-detect environment and set URLs
+        const isProduction = window.location.hostname !== 'localhost';
+        const API_BASE = isProduction ? '/api' : 'http://localhost:3000/api';
+        const WS_URL = isProduction ? 
+            `wss://${window.location.hostname}` : 
+            'ws://localhost:8080';
         
         let ws = null;
         let orders = [];

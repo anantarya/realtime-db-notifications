@@ -28,32 +28,28 @@ const pool = new Pool({
 
 // WebSocket server setup
 let wss;
-if (process.env.RAILWAY_ENVIRONMENT) {
-  // For Railway, WebSocket and HTTP share the same port
-  const server = require('http').createServer(app);
-  wss = new WebSocket.Server({ server });
-} else {
-  // For local development, use separate port
-  wss = new WebSocket.Server({ port: WS_PORT });
-}
+let server;
 
 // Store connected clients
 const clients = new Set();
 
-wss.on('connection', (ws) => {
-  console.log('New client connected');
-  clients.add(ws);
-  
-  ws.on('close', () => {
-    console.log('Client disconnected');
-    clients.delete(ws);
+// WebSocket event handlers
+function setupWebSocketHandlers(wss) {
+  wss.on('connection', (ws) => {
+    console.log('New client connected');
+    clients.add(ws);
+    
+    ws.on('close', () => {
+      console.log('Client disconnected');
+      clients.delete(ws);
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      clients.delete(ws);
+    });
   });
-  
-  ws.on('error', (error) => {
-    console.error('WebSocket error:', error);
-    clients.delete(ws);
-  });
-});
+}
 
 // Function to broadcast to all connected clients
 function broadcastToClients(data) {
@@ -231,27 +227,46 @@ app.get('/health', (req, res) => {
 });
 
 // Start servers
+console.log('Starting server...');
+console.log('Environment:', process.env.RAILWAY_ENVIRONMENT ? 'Railway' : 'Local');
+console.log('Port:', PORT);
+
 if (process.env.RAILWAY_ENVIRONMENT) {
   // Railway: Start combined HTTP/WebSocket server
-  const server = require('http').createServer(app);
+  server = require('http').createServer(app);
   wss = new WebSocket.Server({ server });
+  setupWebSocketHandlers(wss);
   
   server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} (Railway)`);
+    console.log(`✅ Server running on port ${PORT} (Railway)`);
+    console.log(`✅ Health check available at: http://localhost:${PORT}/health`);
+  });
+  
+  server.on('error', (error) => {
+    console.error('❌ Server error:', error);
   });
 } else {
   // Local development: Start separate servers
   app.listen(PORT, () => {
-    console.log(`REST API server running on port ${PORT}`);
+    console.log(`✅ REST API server running on port ${PORT}`);
   });
 
+  wss = new WebSocket.Server({ port: WS_PORT });
+  setupWebSocketHandlers(wss);
   wss.on('listening', () => {
-    console.log(`WebSocket server running on port ${WS_PORT}`);
+    console.log(`✅ WebSocket server running on port ${WS_PORT}`);
+  });
+  
+  wss.on('error', (error) => {
+    console.error('❌ WebSocket server error:', error);
   });
 }
 
 // Setup database listener
-setupDatabaseListener();
+console.log('Setting up database listener...');
+setupDatabaseListener().catch((error) => {
+  console.error('❌ Failed to setup database listener:', error);
+});
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

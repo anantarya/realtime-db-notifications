@@ -1,6 +1,6 @@
 # Real-time Database Change Notification System
 
-A comprehensive Node.js application that demonstrates real-time database change notifications using PostgreSQL triggers, WebSockets, and a modern web interface.
+A Node.js application that demonstrates real-time database change notifications using PostgreSQL triggers, WebSockets, and a modern web interface.
 
 ## 🚀 Features
 
@@ -9,8 +9,6 @@ A comprehensive Node.js application that demonstrates real-time database change 
 - **WebSocket Communication**: Fast, bidirectional communication between server and clients
 - **RESTful API**: Complete CRUD operations for order management
 - **Modern Web Interface**: Beautiful, responsive UI with real-time notifications
-- **Scalable Architecture**: Designed to handle multiple concurrent clients
-- **Railway Ready**: Optimized for deployment on Railway platform
 
 ## 🏗️ Architecture
 
@@ -45,63 +43,6 @@ Database Change → PostgreSQL Trigger → pg_notify → Node.js Listener → We
 - PostgreSQL (v12 or higher)
 - npm or yarn
 
-## 🚀 Railway Deployment
-
-This project is optimized for deployment on Railway. Follow these steps to deploy:
-
-### 1. Prepare Your Repository
-
-1. Push your code to GitHub
-2. Ensure all files are committed (including `railway.json` and updated `Dockerfile`)
-
-### 2. Deploy on Railway
-
-1. Go to [railway.app](https://railway.app) and sign up/login
-2. Click "New Project" → "Deploy from GitHub repo"
-3. Select your repository
-4. Railway will automatically detect your Dockerfile and deploy
-
-### 3. Add PostgreSQL Database
-
-1. In your Railway project dashboard, click "New" → "Database" → "PostgreSQL"
-2. Railway will automatically create a PostgreSQL database
-3. The database credentials will be available as environment variables
-
-### 4. Configure Environment Variables
-
-Railway will automatically set these environment variables:
-- `DATABASE_URL` - Complete PostgreSQL connection string
-- `PORT` - Port for your application (Railway assigns this)
-- `RAILWAY_ENVIRONMENT` - Set to "production"
-
-### 5. Deploy and Test
-
-1. Railway will automatically build and deploy your application
-2. Once deployed, you'll get a public URL (e.g., `https://your-app.railway.app`)
-3. Test the deployment:
-   - Visit your Railway URL
-   - Check the health endpoint: `https://your-app.railway.app/health`
-   - Test WebSocket connection and real-time features
-
-### Railway-Specific Features
-
-- **Automatic HTTPS**: Railway provides SSL certificates automatically
-- **WebSocket Support**: WebSockets work seamlessly on Railway
-- **Database Integration**: PostgreSQL database is automatically connected
-- **Environment Variables**: Secure environment variable management
-- **Custom Domains**: Add your own domain in Railway settings
-- **Scaling**: Easy horizontal scaling in Railway dashboard
-
-### Railway Deployment Benefits
-
-✅ **Zero Configuration**: Works out of the box  
-✅ **Automatic SSL**: HTTPS enabled by default  
-✅ **Database Included**: PostgreSQL database provisioned automatically  
-✅ **WebSocket Support**: Real-time features work perfectly  
-✅ **Custom Domains**: Add your own domain easily  
-✅ **Monitoring**: Built-in logs and metrics  
-✅ **Scaling**: Scale up/down with one click  
-
 ## 🛠️ Installation & Setup
 
 ### 1. Clone and Install Dependencies
@@ -114,20 +55,7 @@ npm install
 
 ### 2. Database Setup
 
-#### Option A: Railway PostgreSQL (Currently Configured)
-
-The project is already configured to use Railway PostgreSQL with the following credentials:
-- **Host**: hopper.proxy.rlwy.net
-- **Port**: 32273
-- **Database**: railway
-- **User**: postgres
-
-The database schema and triggers are already set up. Simply run:
-```bash
-npm run setup-db
-```
-
-#### Option B: Using Docker
+#### Option A: Using Docker
 
 ```bash
 # Start PostgreSQL container
@@ -142,7 +70,7 @@ docker run --name postgres-realtime \
 npm run setup-db
 ```
 
-#### Option C: Local PostgreSQL Installation
+#### Option B: Local PostgreSQL Installation
 
 1. Install PostgreSQL on your system
 2. Create a database:
@@ -157,26 +85,23 @@ npm run setup-db
 
 ### 3. Environment Configuration
 
-The project is already configured with Railway PostgreSQL credentials. The `.env` file contains:
+Create a `.env` file with your database credentials:
 
 ```env
-# Database Configuration - Railway PostgreSQL
-DB_HOST=hopper.proxy.rlwy.net
-DB_PORT=32273
-DB_NAME=railway
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=realtime_orders
 DB_USER=postgres
-DB_PASSWORD=uyhTnQlyQOEYtLwhNdQlvlMUSCYNjJXK
+DB_PASSWORD=password
 
 # Server Configuration
 PORT=3000
 WS_PORT=8080
 ```
 
-**Note**: The Railway PostgreSQL connection includes SSL support and is already configured in the codebase.
-
 ### 4. Start the Application
 
-#### Option A: With Railway PostgreSQL (Currently Running)
 ```bash
 # Development mode (with auto-restart)
 npm run dev
@@ -185,21 +110,10 @@ npm run dev
 npm start
 ```
 
-#### Option B: Mock Version (No Database Required)
-```bash
-# Development mode (with auto-restart)
-npm run dev:mock
-
-# Production mode
-npm run start:mock
-```
-
 The application will start:
 - REST API server on `http://localhost:3000`
 - WebSocket server on `ws://localhost:8080`
 - Web interface on `http://localhost:3000`
-
-**Current Status**: The system is running with Railway PostgreSQL and real-time database triggers are active!
 
 ## 🎯 Usage
 
@@ -354,108 +268,20 @@ async function setupDatabaseListener() {
 }
 ```
 
-## 🎨 Design Decisions
-
-### Why PostgreSQL LISTEN/NOTIFY?
-
-1. **Efficiency**: No polling required - changes are pushed immediately
-2. **Reliability**: Built into PostgreSQL, no external dependencies
-3. **Performance**: Minimal overhead compared to polling solutions
-4. **Scalability**: Can handle many concurrent listeners
-
-### Why WebSockets?
-
-1. **Real-time**: Bidirectional, low-latency communication
-2. **Efficiency**: Persistent connection, no HTTP overhead
-3. **Browser Support**: Native WebSocket API in all modern browsers
-4. **Scalability**: Can handle thousands of concurrent connections
-
-### Why This Architecture?
-
-1. **Separation of Concerns**: Database, API, and WebSocket servers are separate
-2. **Scalability**: Each component can be scaled independently
-3. **Maintainability**: Clear separation makes debugging easier
-4. **Flexibility**: Easy to add new features or change components
-
-## 🚀 Scaling Considerations
-
-### Horizontal Scaling
-
-1. **Load Balancer**: Use nginx or similar to distribute WebSocket connections
-2. **Database Clustering**: PostgreSQL streaming replication
-3. **Redis Pub/Sub**: For multi-server WebSocket broadcasting
-4. **Container Orchestration**: Docker Swarm or Kubernetes
-
-### Performance Optimizations
-
-1. **Connection Pooling**: Already implemented with pg.Pool
-2. **WebSocket Compression**: Enable per-message deflate
-3. **Database Indexing**: Add indexes on frequently queried columns
-4. **Caching**: Redis for frequently accessed data
-
 ## 🧪 Testing
-
-### Quick Start (Mock Version)
-
-```bash
-# Start the mock server
-npm run start:mock
-
-# In another terminal, run the test suite
-npm test
-
-# Or test the CLI client
-npm run cli
-```
 
 ### Manual Testing
 
-1. Start the server: `npm run start:mock`
+1. Start the server: `npm start`
 2. Open multiple browser tabs to `http://localhost:3000`
 3. Create, update, or delete orders in one tab
 4. Watch real-time updates appear in other tabs
 
-### Automated Testing
-
-The project includes a comprehensive test suite:
+### CLI Testing
 
 ```bash
-# Run the full test suite
-npm test
-```
-
-This will test:
-- Server health check
-- WebSocket connection
-- CRUD operations (Create, Read, Update, Delete)
-- Real-time notifications
-- End-to-end functionality
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Database Connection Failed**
-   - Check PostgreSQL is running
-   - Verify credentials in `.env`
-   - Ensure database exists
-
-2. **WebSocket Connection Failed**
-   - Check if port 8080 is available
-   - Verify firewall settings
-   - Check browser console for errors
-
-3. **No Real-time Updates**
-   - Verify database triggers are installed
-   - Check server logs for errors
-   - Ensure WebSocket connection is established
-
-### Debug Mode
-
-Enable debug logging by setting:
-
-```bash
-DEBUG=* npm start
+# Test the CLI client
+npm run cli
 ```
 
 ## 📈 Monitoring
@@ -474,14 +300,6 @@ Response:
   "connectedClients": 5
 }
 ```
-
-### Logs
-
-The application logs:
-- WebSocket connections/disconnections
-- Database change notifications
-- API requests
-- Errors and warnings
 
 ## 🔒 Security Considerations
 
@@ -518,9 +336,3 @@ The application logs:
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- PostgreSQL team for the excellent LISTEN/NOTIFY feature
-- WebSocket community for the robust protocol
-- Node.js ecosystem for the rich package ecosystem

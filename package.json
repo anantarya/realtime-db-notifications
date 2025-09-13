@@ -9,9 +9,7 @@
     "dev": "nodemon server.js",
     "dev:mock": "nodemon server-mock.js",
     "setup-db": "node scripts/setup-database.js",
-    "test": "node test-system.js",
-    "cli": "node cli-client.js",
-    "heroku-postbuild": "npm run setup-db"
+    "cli": "node cli-client.js"
   },
   "keywords": [
     "websocket",
